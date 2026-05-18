@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Abschluss-Umfrage</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #cbd5e0;
+            --accent-color: #3182ce;
+            --bar-bg: #e2e8f0;
+            --bar-fill: #4299e1;
+            --bar-fill-selected: #2b6cb0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            background: #feebc8;
+            color: #c05621;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        h2 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 1.6rem;
+        }
+
+        .question-ru {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 15px 0 5px 0;
+            line-height: 1.3;
+        }
+
+        .question-de {
+            font-size: 1rem;
+            color: #718096;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        /* Umfrage-Optionen als klickbare Buttons */
+        .poll-options {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .poll-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            padding: 16px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .poll-btn:hover {
+            border-color: var(--accent-color);
+            background-color: #f7fafc;
+            transform: translateX(3px);
+        }
+
+        .option-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .option-translation {
+            display: block;
+            font-size: 0.85rem;
+            color: #718096;
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        /* Ergebnis-Ansichten (Diagramm-Modus) */
+        .result-wrapper {
+            display: none; /* Wird per JS aktiviert */
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .result-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .result-labels .translation {
+            font-weight: normal;
+            font-size: 0.85rem;
+            color: #718096;
+            margin-left: 5px;
+        }
+
+        .bar-container {
+            background: var(--bar-bg);
+            width: 100%;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            background: var(--bar-fill);
+            height: 100%;
+            width: 0%; /* Animiert per JS */
+            border-radius: 12px;
+            transition: width 1s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+
+        .result-row.user-choice .bar-fill {
+            background: var(--bar-fill-selected);
+        }
+
+        .user-tag {
+            background: var(--primary-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        /* Admin-Bereich zum Zurücksetzen */
+        .admin-panel {
+            margin-top: 35px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 15px;
+            text-align: center;
+        }
+
+        .reset-link {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .reset-link:hover {
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="badge">Abschlussfrage</div>
+    <h2>Interaktives Klassen-Voting</h2>
+    
+    <div class="question-ru">Часто ли у вас все идет наперекосяк?</div>
+    <div class="question-de">(= Läuft bei euch oft alles schief / drunter und drüber?)</div>
+
+    <!-- Modus 1: Abstimmung (Buttons) -->
+    <div class="poll-options" id="poll-view">
+        <button class="poll-btn" data-option="0">
+            <div>
+                <span class="option-title">Да, часто.</span>
+                <span class="option-translation">Ja, oft.</span>
+            </div>
+            <span>➔</span>
+        </button>
+        
+        <button class="poll-btn" data-option="1">
+            <div>
+                <span class="option-title">Иногда.</span>
+                <span class="option-translation">Manchmal.</span>
+            </div>
+            <span>➔</span>
+        </button>
+        
+        <button class="poll-btn" data-option="2">
+            <div>
+                <span class="option-title">Нет, редко.</span>
+                <span class="option-translation">Nein, selten.</span>
+            </div>
+            <span>➔</span>
+        </button>
+    </div>
+
+    <!-- Modus 2: Ergebnis-Diagramm -->
+    <div class="result-wrapper" id="result-view">
+        <!-- Reihe 1 -->
+        <div class="result-row" id="row-0">
+            <div class="result-labels">
+                <div>Да, часто. <span class="translation">(Ja, oft.)</span><span class="user-tag" id="tag-0" style="display:none;">Deine Wahl</span></div>
+                <div class="percent-val" id="val-0">0%</div>
+            </div>
+            <div class="bar-container">
+                <div class="bar-fill" id="bar-0"></div>
+            </div>
+        </div>
+
+        <!-- Reihe 2 -->
+        <div class="result-row" id="row-1">
+            <div class="result-labels">
+                <div>Иногда. <span class="translation">(Manchmal.)</span><span class="user-tag" id="tag-1" style="display:none;">Deine Wahl</span></div>
+                <div class="percent-val" id="val-1">0%</div>
+            </div>
+            <div class="bar-container">
+                <div class="bar-fill" id="bar-1"></div>
+            </div>
+        </div>
+
+        <!-- Reihe 3 -->
+        <div class="result-row" id="row-2">
+            <div class="result-labels">
+                <div>Нет, редко. <span class="translation">(Nein, selten.)</span><span class="user-tag" id="tag-2" style="display:none;">Deine Wahl</span></div>
+                <div class="percent-val" id="val-2">0%</div>
+            </div>
+            <div class="bar-container">
+                <div class="bar-fill" id="bar-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel">
+        <span class="reset-link" id="clear-votes-btn">🔄 Umfrage für neue Klasse zurücksetzen</span>
+    </div>
+</div>
+
+<script>
+    // Repräsentative vordefinierte Basis-Stimmen der Klasse, damit direkt ein realistisches Diagramm entsteht
+    const defaultVotes = [24, 48, 12]; 
+
+    const pollView = document.getElementById('poll-view');
+    const resultView = document.getElementById('result-view');
+    const pollButtons = document.querySelectorAll('.poll-btn');
+    const clearBtn = document.getElementById('clear-votes-btn');
+
+    // Laden oder Initialisieren der Stimmen aus dem lokalen Browser-Speicher
+    let currentVotes = JSON.parse(localStorage.getItem('klassenvoting_votes')) || [...defaultVotes];
+    let userChoice = localStorage.getItem('klassenvoting_choice'); // Index der Schüler-Antwort
+
+    function checkVotedStatus() {
+        if (userChoice !== null) {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        pollView.style.display = 'none';
+        resultView.style.display = 'flex';
+
+        const totalVotes = currentVotes.reduce((a, b) => a + b, 0);
+
+        // Prozentwerte berechnen und Balken steuern
+        currentVotes.forEach((votes, index) => {
+            const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+            
+            // Text-Prozentwert eintragen
+            document.getElementById(`val-${index}`).textContent = `${percentage}%`;
+            
+            // Balken-Animation starten
+            setTimeout(() => {
+                document.getElementById(`bar-${index}`).style.width = `${percentage}%`;
+            }, 150);
+
+            // Markierung setzen, falls dies die Antwort des Schülers war
+            if (parseInt(userChoice) === index) {
+                document.getElementById(`row-${index}`).classList.add('user-choice');
+                document.getElementById(`tag-${index}`).style.display = 'inline-block';
+            }
+        });
+    }
+
+    // Event-Listener für die Stimmabgabe
+    pollButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const selectedOption = parseInt(this.getAttribute('data-option'));
+            
+            // Stimme im Array hochzählen und abspeichern
+            currentVotes[selectedOption]++;
+            userChoice = selectedOption;
+
+            localStorage.setItem('klassenvoting_votes', JSON.stringify(currentVotes));
+            localStorage.setItem('klassenvoting_choice', userChoice);
+
+            showResults();
+        });
+    });
+
+    // Reset-Funktion (Setzt die eigene Stimme zurück und lädt das Basis-Klassenergebnis)
+    clearBtn.addEventListener('click', () => {
+        localStorage.removeItem('klassenvoting_votes');
+        localStorage.removeItem('klassenvoting_choice');
+        currentVotes = [...defaultVotes];
+        userChoice = null;
+
+        // UI zurücksetzen
+        pollView.style.display = 'flex';
+        resultView.style.display = 'none';
+        
+        for (let i = 0; i < 3; i++) {
+            document.getElementById(`row-${i}`).classList.remove('user-choice');
+            document.getElementById(`tag-${i}`).style.display = 'none';
+            document.getElementById(`bar-${i}`).style.width = '0%';
+        }
+    });
+
+    // Direkt beim Start prüfen, ob der Schüler bereits abgestimmt hat
+    checkVotedStatus();
+</script>
+
+</body>
+</html>
