@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Richtig oder Falsch?</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #cbd5e0;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --success-bg: #f0fff4;
+            --error-bg: #fff5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .instruction {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        /* Frage-Reihe */
+        .statement-row {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.2s ease;
+            border-left: 5px solid #718096;
+        }
+
+        @media (max-width: 600px) {
+            .statement-row {
+                flex-direction: column;
+                text-align: center;
+                align-items: stretch;
+            }
+        }
+
+        .statement-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Buttons für Richtig / Falsch */
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 600px) {
+            .toggle-group {
+                justify-content: center;
+            }
+        }
+
+        .toggle-btn {
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border: 2px solid var(--border-color);
+            background: white;
+            color: var(--text-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-width: 90px;
+        }
+
+        .toggle-btn.btn-true:hover {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .toggle-btn.btn-false:hover {
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+
+        /* Status-Zustände nach Klick */
+        .statement-row.row-correct {
+            border-left-color: var(--success-color);
+            background-color: var(--success-bg);
+        }
+
+        .statement-row.row-incorrect {
+            border-left-color: var(--error-color);
+            background-color: var(--error-bg);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .toggle-btn.selected-correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+        }
+
+        .toggle-btn.selected-incorrect {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            color: white !important;
+        }
+
+        .toggle-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        #reset-btn {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #reset-btn:hover {
+            background-color: #4a5568;
+        }
+
+        .result-message {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            min-height: 30px;
+            color: var(--success-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aufgabe 5: Richtig oder Falsch?</h2>
+    <p class="instruction">Bewerte die Aussagen zum gelernten Thema. Falsche Antworten setzen sich automatisch zurück.</p>
+
+    <div id="statements-container">
+        <!-- Aufgabe 1 -->
+        <div class="statement-row" data-answer="true">
+            <div class="statement-text">Das Wort наперекосяк bedeutet, dass etwas schiefläuft.</div>
+            <div class="toggle-group">
+                <button class="toggle-btn btn-true" data-value="true">Richtig</button>
+                <button class="toggle-btn btn-false" data-value="false">Falsch</button>
+            </div>
+        </div>
+
+        <!-- Aufgabe 2 -->
+        <div class="statement-row" data-answer="false">
+            <div class="statement-text">Das Wort наперекосяк bedeutet, dass alles genau nach Plan läuft.</div>
+            <div class="toggle-group">
+                <button class="toggle-btn btn-true" data-value="true">Richtig</button>
+                <button class="toggle-btn btn-false" data-value="false">Falsch</button>
+            </div>
+        </div>
+
+        <!-- Aufgabe 3 -->
+        <div class="statement-row" data-answer="true">
+            <div class="statement-text">Im Satz „Сегодня все идет наперекосяк“ bedeutet das letzte Wort, dass der Tag misslingt.</div>
+            <div class="toggle-group">
+                <button class="toggle-btn btn-true" data-value="true">Richtig</button>
+                <button class="toggle-btn btn-false" data-value="false">Falsch</button>
+            </div>
+        </div>
+
+        <!-- Aufgabe 4 -->
+        <div class="statement-row" data-answer="false">
+            <div class="statement-text">Der zweite Teil des Beispielsatzes lautet „ничего не понимаешь“ (du verstehst nichts).</div>
+            <div class="toggle-group">
+                <button class="toggle-btn btn-true" data-value="true">Richtig</button>
+                <button class="toggle-btn btn-false" data-value="false">Falsch</button>
+            </div>
+        </div>
+
+        <!-- Aufgabe 5 -->
+        <div class="statement-row" data-answer="true">
+            <div class="statement-text">Die russische Erklärung für das Wort lautet „не так, как должно быть“.</div>
+            <div class="toggle-group">
+                <button class="toggle-btn btn-true" data-value="true">Richtig</button>
+                <button class="toggle-btn btn-false" data-value="false">Falsch</button>
+            </div>
+        </div>
+
+        <!-- Aufgabe 6 -->
+        <div class="statement-row" data-answer="true">
+            <div class="statement-text">Am Ende des Videos fordert der Sprecher die Zuschauer auf, in den Kommentaren zu antworten.</div>
+            <div class="toggle-group">
+                <button class="toggle-btn btn-true" data-value="true">Richtig</button>
+                <button class="toggle-btn btn-false" data-value="false">Falsch</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button id="reset-btn">Neustart</button>
+    </div>
+
+    <div class="result-message" id="global-result"></div>
+</div>
+
+<script>
+    const rows = document.querySelectorAll('.statement-row');
+    const globalResult = document.getElementById('global-result');
+    const resetBtn = document.getElementById('reset-btn');
+
+    rows.forEach(row => {
+        const buttons = row.querySelectorAll('.toggle-btn');
+        const correctAnswer = row.getAttribute('data-answer');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                const clickedValue = this.getAttribute('data-value');
+                
+                // Gesamte Klick-Interaktion für diese Zeile temporär sperren
+                buttons.forEach(btn => btn.classList.add('disabled'));
+
+                if (clickedValue === correctAnswer) {
+                    // Richtig geantwortet
+                    row.classList.add('row-correct');
+                    this.classList.remove('disabled');
+                    this.classList.add('selected-correct');
+                    checkAllComplete();
+                } else {
+                    // Falsch geantwortet
+                    row.classList.add('row-incorrect');
+                    this.classList.remove('disabled');
+                    this.classList.add('selected-incorrect');
+
+                    // Nach 1 Sekunde automatisch zurücksetzen, damit der Schüler neu wählen kann
+                    setTimeout(() => {
+                        row.classList.remove('row-incorrect');
+                        this.classList.remove('selected-incorrect');
+                        buttons.forEach(btn => btn.classList.remove('disabled'));
+                    }, 1000);
+                }
+            });
+        });
+    });
+
+    // Prüft, ob alle Zeilen korrekt gelöst wurden
+    function checkAllComplete() {
+        const allCorrect = Array.from(rows).every(row => row.classList.contains('row-correct'));
+        if (allCorrect) {
+            globalResult.textContent = "Hervorragend! Du hast alle 6 Aussagen korrekt bewertet! 🎉";
+        }
+    }
+
+    // Neustart-Logik
+    resetBtn.addEventListener('click', () => {
+        rows.forEach(row => {
+            row.classList.remove('row-correct', 'row-incorrect');
+            const buttons = row.querySelectorAll('.toggle-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('disabled', 'selected-correct', 'selected-incorrect');
+            });
+        });
+        globalResult.textContent = "";
+    });
+</script>
+
+</body>
+</html>
