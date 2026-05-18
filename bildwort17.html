@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Bild-Wort-Zuordnung</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --accent-bg: #edf2f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .instruction {
+            margin-bottom: 25px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        .word-banner {
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.6rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(43, 108, 176, 0.3);
+        }
+
+        /* Responsives Grid für die Bildkarten */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .image-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Einzelne Bildkarte */
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-color: var(--primary-color);
+        }
+
+        .card-visual {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            line-height: 1;
+        }
+
+        .card-description {
+            font-size: 0.95rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        /* Feedback-Zustände */
+        .card.correct {
+            border-color: var(--success-color);
+            background-color: #f0fff4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .card.correct .card-description {
+            color: #276749;
+        }
+
+        .card.incorrect {
+            border-color: var(--error-color);
+            background-color: #fff5f5;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .card.incorrect .card-description {
+            color: #9b2c2c;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #4a5568;
+        }
+
+        .result-message {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 25px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aufgabe 4: Bild-Wort-Zuordnung</h2>
+    <p class="instruction">Finde alle Situationen, zu denen das oben stehende Wort perfekt passt!</p>
+
+    <div class="word-banner">наперекосяк</div>
+
+    <div class="image-grid" id="grid">
+        <!-- Die 6 Aufgabenkarten werden per JS geladen, um sie flexibel mischen zu können -->
+    </div>
+
+    <div class="btn-container">
+        <button id="reset-btn">Neustart</button>
+    </div>
+
+    <div class="result-message" id="result-text"></div>
+</div>
+
+<script>
+    // 6 Aufgaben (3 passende Situationen für "наперекосяк", 3 unpassende als Distraktoren)
+    const cardData = [
+        { id: 1, emoji: "🍳🔥", desc: "Das Essen brennt komplett an", isCorrect: true },
+        { id: 2, emoji: "🚌💨", desc: "Der Bus fährt direkt vor der Nase weg", isCorrect: true },
+        { id: 3, emoji: "📱💥", desc: "Das Smartphone fällt auf den Boden", isCorrect: true },
+        { id: 4, emoji: "☀️☕", desc: "Ein entspannter, schöner Morgen", isCorrect: false },
+        { id: 5, emoji: "🏆🎉", desc: "Du gewinnst den ersten Platz", isCorrect: false },
+        { id: 6, emoji: "🛌✨", desc: "Das Zimmer ist perfekt aufgeräumt", isCorrect: false }
+    ];
+
+    const grid = document.getElementById('grid');
+    const resultText = document.getElementById('result-text');
+    const resetBtn = document.getElementById('reset-btn');
+    
+    let totalCorrectAnswers = cardData.filter(c => c.isCorrect).length;
+    let currentCorrectCount = 0;
+    let lockInteraction = false;
+
+    function initGame() {
+        grid.innerHTML = '';
+        resultText.textContent = '';
+        currentCorrectCount = 0;
+        lockInteraction = false;
+
+        // Karten zufällig mischen
+        const shuffledCards = [...cardData].sort(() => Math.random() - 0.5);
+
+        shuffledCards.forEach(data => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.setAttribute('data-correct', data.isCorrect);
+
+            card.innerHTML = `
+                <div class="card-visual">${data.emoji}</div>
+                <div class="card-description">${data.desc}</div>
+            `;
+
+            card.addEventListener('click', () => handleCardClick(card));
+            grid.appendChild(card);
+        });
+    }
+
+    function handleCardClick(card) {
+        if (lockInteraction || card.classList.contains('correct')) return;
+
+        const isCorrect = card.getAttribute('data-correct') === 'true';
+
+        if (isCorrect) {
+            // Direktes Feedback: Richtig
+            card.classList.add('correct');
+            currentCorrectCount++;
+
+            // Prüfen, ob alle richtigen Situationen gefunden wurden
+            if (currentCorrectCount === totalCorrectAnswers) {
+                resultText.style.color = 'var(--success-color)';
+                resultText.textContent = "Ausgezeichnet! Du hast alle Situationen gefunden, in denen alles schiefläuft (наперекосяк). 🎉";
+                lockInteraction = true;
+            }
+        } else {
+            // Direktes Feedback: Falsch
+            lockInteraction = true;
+            card.classList.add('incorrect');
+
+            // Nach 1 Sekunde automatisch zurücksetzen
+            setTimeout(() => {
+                card.classList.remove('incorrect');
+                lockInteraction = false;
+            }, 1000);
+        }
+    }
+
+    resetBtn.addEventListener('click', initGame);
+
+    // Initialer Start des Spiels
+    initGame();
+</script>
+
+</body>
+</html>
