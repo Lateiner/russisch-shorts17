@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Digitales Memory</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #cbd5e0;
+            --success-color: #48bb78;
+            --accent-color: #4299e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .instruction {
+            margin-bottom: 25px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        /* Responsives Memory-Grid */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+            perspective: 1000px; /* Ermöglicht 3D-Dreheffekt */
+        }
+
+        @media (max-width: 768px) {
+            .memory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .memory-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+        }
+
+        /* Memory Karte */
+        .memory-card {
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease, opacity 0.8s ease; /* 0.8s für langsames Verschwinden */
+            cursor: pointer;
+            user-select: none;
+        }
+
+        @media (max-width: 480px) {
+            .memory-card {
+                height: 85px;
+            }
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Verstecken/Verschwinden des gefundenen Paars */
+        .memory-card.matched {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 480px) {
+            .card-face {
+                font-size: 0.85rem;
+                padding: 4px;
+            }
+        }
+
+        /* Karten-Rückseite (Verdeckt) */
+        .card-back {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: 2px solid var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        /* Karten-Vorderseite (Aufgedeckt) */
+        .card-front {
+            background: #edf2f7;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.correct-flash .card-front {
+            border-color: var(--success-color);
+            background-color: #f0fff4;
+            color: #276749;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #4a5568;
+        }
+
+        .result-message {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aufgabe 8: Digitales Memory</h2>
+    <p class="instruction">Finde die zusammengehörigen Paare (Russisch $\leftrightarrow$ Deutsch). Richtige Paare verschwinden langsam.</p>
+
+    <div class="memory-grid" id="grid">
+        <!-- Karten werden per JS generiert -->
+    </div>
+
+    <div class="btn-container">
+        <button id="reset-btn">Neustart</button>
+    </div>
+
+    <div class="result-message" id="result-text"></div>
+</div>
+
+<script>
+    // Die 6 Memory-Paare (ID-basiert verknüpft)
+    const pairsData = [
+        { id: 1, text: "наперекосяк", lang: "ru" },
+        { id: 1, text: "schieflaufen / drunter und drüber", lang: "de" },
+        
+        { id: 2, text: "ничего не получается", lang: "ru" },
+        { id: 2, text: "nichts klappt", lang: "de" },
+        
+        { id: 3, text: "все идет не так", lang: "ru" },
+        { id: 3, text: "alles läuft schief", lang: "de" },
+        
+        { id: 4, text: "как должно быть", lang: "ru" },
+        { id: 4, text: "wie es sein sollte", lang: "de" },
+        
+        { id: 5, text: "Часто ли у вас...?", lang: "ru" },
+        { id: 5, text: "Läuft bei euch oft...?", lang: "de" },
+        
+        { id: 6, text: "Напишите в комментариях", lang: "ru" },
+        { id: 6, text: "Schreibt es in die Kommentare", lang: "de" }
+    ];
+
+    const grid = document.getElementById('grid');
+    const resultText = document.getElementById('result-text');
+    const resetBtn = document.getElementById('reset-btn');
+
+    let firstCard = null;
+    let secondCard = null;
+    let lockBoard = false;
+    let matchesFound = 0;
+
+    function createBoard() {
+        grid.innerHTML = '';
+        resultText.textContent = '';
+        matchesFound = 0;
+        firstCard = null;
+        secondCard = null;
+        lockBoard = false;
+
+        // Karten duplizieren/klonen und komplett zufällig mischen
+        const shuffledCards = [...pairsData].sort(() => Math.random() - 0.5);
+
+        shuffledCards.forEach(data => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.setAttribute('data-pair-id', data.id);
+
+            card.innerHTML = `
+                <div class="card-face card-back">?</div>
+                <div class="card-face card-front">${data.text}</div>
+            `;
+
+            card.addEventListener('click', flipCard);
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard() {
+        if (lockBoard) return;
+        if (this === firstCard) return; // Klick auf die bereits gewählte Karte ignorieren
+
+        this.classList.add('flipped');
+
+        if (!firstCard) {
+            // Erste Karte umgedreht
+            firstCard = this;
+            return;
+        }
+
+        // Zweite Karte umgedreht
+        secondCard = this;
+        checkForMatch();
+    }
+
+    function checkForMatch() {
+        const isMatch = firstCard.getAttribute('data-pair-id') === secondCard.getAttribute('data-pair-id');
+
+        if (isMatch) {
+            disableCards();
+        } else {
+            unflipCards();
+        }
+    }
+
+    function disableCards() {
+        lockBoard = true;
+        matchesFound++;
+
+        // Visuelles Feedback für das korrekte Paar geben
+        firstCard.classList.add('correct-flash');
+        secondCard.classList.add('correct-flash');
+
+        // Nach 1 Sekunde Aufdeckzeit das langsame Verschwinden via CSS initiieren
+        setTimeout(() => {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            
+            resetRound();
+
+            // Prüfen, ob das Spiel komplett gelöst wurde
+            if (matchesFound === pairsData.length / 2) {
+                setTimeout(() => {
+                    resultText.style.color = 'var(--success-color)';
+                    resultText.textContent = "Hervorragend gelöst! Du hast alle Paare erfolgreich zugeordnet. 🎉";
+                }, 800); // Wartet, bis das Ausblenden der letzten Karten abgeschlossen ist
+            }
+        }, 1000);
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+
+        // Wenn falsch, nach 1,2 Sekunden die Karten wieder umdrehen
+        setTimeout(() => {
+            firstCard.classList.remove('flipped');
+            secondCard.classList.remove('flipped');
+            resetRound();
+        }, 1200);
+    }
+
+    function resetRound() {
+        firstCard = null;
+        secondCard = null;
+        lockBoard = false;
+    }
+
+    resetBtn.addEventListener('click', createBoard);
+
+    // Initialer Start beim Laden der Seite
+    createBoard();
+</script>
+
+</body>
+</html>
