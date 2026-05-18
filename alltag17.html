@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Situative Anwendung</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --success-bg: #f0fff4;
+            --error-bg: #fff5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .instruction {
+            margin-bottom: 25px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        .word-badge {
+            background: #e2e8f0;
+            color: var(--primary-color);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Grid-Layout für die Situationen */
+        .situations-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 650px) {
+            .situations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Situationskarte */
+        .situation-card {
+            background: #edf2f7;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            user-select: none;
+        }
+
+        .situation-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .situation-text {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+
+        .status-indicator {
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #718096;
+            align-self: flex-start;
+        }
+
+        /* Feedback-Stile */
+        .situation-card.correct {
+            background-color: var(--success-bg);
+            border-color: var(--success-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .situation-card.correct .situation-text {
+            color: #276749;
+        }
+
+        .situation-card.correct .status-indicator {
+            color: var(--success-color);
+        }
+
+        .situation-card.incorrect {
+            background-color: var(--error-bg);
+            border-color: var(--error-color);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .situation-card.incorrect .situation-text {
+            color: #9b2c2c;
+        }
+
+        .situation-card.incorrect .status-indicator {
+            color: var(--error-color);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        #reset-btn {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #reset-btn:hover {
+            background-color: #4a5568;
+        }
+
+        .result-message {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 25px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aufgabe 6: Situative Anwendung</h2>
+    <p class="instruction">In welchen Alltagsszenarien passt das russische Wort <span class="word-badge">наперекосяк</span>? Klicke sie an!</p>
+
+    <div class="situations-grid" id="grid">
+        <!-- Die 6 Situationen werden via JS gemischt eingefügt -->
+    </div>
+
+    <div class="btn-container">
+        <button id="reset-btn">Neustart</button>
+    </div>
+
+    <div class="result-message" id="result-text"></div>
+</div>
+
+<script>
+    // 6 Alltagssituationen (3 korrekte Chaos-Szenarien, 3 falsche Positiv-Szenarien)
+    const situationsData = [
+        {
+            id: 1,
+            text: "Du hast deinen Hausschlüssel drinnen vergessen, es fängt an zu regnen und dein Bus fährt gerade ohne dich weg.",
+            isCorrect: true
+        },
+        {
+            id: 2,
+            text: "Dein Wecker hat morgens nicht geklingelt, du verschüttest Kaffee auf dein weißes Hemd und kommst zu spät zum wichtigen Meeting.",
+            isCorrect: true
+        },
+        {
+            id: 3,
+            text: "Deine Computer-Festplatte stürzt mitten unterm Speichern ab, deine Hausarbeit ist weg und das Internet fällt komplett aus.",
+            isCorrect: true
+        },
+        {
+            id: 4,
+            text: "Du wachst pünktlich auf, das Wetter ist herrlich und du schreibst eine glatte Eins in deiner Russisch-Klausur.",
+            isCorrect: false
+        },
+        {
+            id: 5,
+            text: "Du triffst dich am Wochenende entspannt mit deinen besten Freunden im Café und alles verläuft genau wie geplant.",
+            isCorrect: false
+        },
+        {
+            id: 6,
+            text: "Du räumst am Nachmittag dein Zimmer perfekt auf und kochst danach ohne Probleme dein absolutes Lieblingsgericht.",
+            isCorrect: false
+        }
+    ];
+
+    const grid = document.getElementById('grid');
+    const resultText = document.getElementById('result-text');
+    const resetBtn = document.getElementById('reset-btn');
+
+    let targetCorrectCount = situationsData.filter(s => s.isCorrect).length;
+    let currentCorrectCount = 0;
+    let lockInteraction = false;
+
+    function initGame() {
+        grid.innerHTML = '';
+        resultText.textContent = '';
+        currentCorrectCount = 0;
+        lockInteraction = false;
+
+        // Situationen zufällig mischen
+        const shuffledSituations = [...situationsData].sort(() => Math.random() - 0.5);
+
+        shuffledSituations.forEach(data => {
+            const card = document.createElement('div');
+            card.className = 'situation-card';
+            card.setAttribute('data-correct', data.isCorrect);
+
+            card.innerHTML = `
+                <div class="situation-text">„${data.text}“</div>
+                <div class="status-indicator">Wählbar</div>
+            `;
+
+            card.addEventListener('click', () => handleCardClick(card));
+            grid.appendChild(card);
+        });
+    }
+
+    function handleCardClick(card) {
+        if (lockInteraction || card.classList.contains('correct')) return;
+
+        const isCorrect = card.getAttribute('data-correct') === 'true';
+
+        if (isCorrect) {
+            // Direktes Feedback bei korrekter Antwort
+            card.classList.add('correct');
+            card.querySelector('.status-indicator').textContent = 'Korrekt! (наперекосяк)';
+            currentCorrectCount++;
+
+            // Prüfen, ob alle richtigen Situationen aufgedeckt wurden
+            if (currentCorrectCount === targetCorrectCount) {
+                resultText.style.color = 'var(--success-color)';
+                resultText.textContent = "Hervorragend! Du hast alle Situationen erkannt, in denen der Tag komplett schiefläuft (наперекосяк). 🎉";
+                lockInteraction = true;
+            }
+        } else {
+            // Direktes Feedback bei falscher Antwort
+            lockInteraction = true;
+            card.classList.add('incorrect');
+            card.querySelector('.status-indicator').textContent = 'Unpassend';
+
+            // Nach 1 Sekunde automatisch zurücksetzen
+            setTimeout(() => {
+                card.classList.remove('incorrect');
+                card.querySelector('.status-indicator').textContent = 'Wählbar';
+                lockInteraction = false;
+            }, 1000);
+        }
+    }
+
+    resetBtn.addEventListener('click', initGame);
+
+    // Spiel initial starten
+    initGame();
+</script>
+
+</body>
+</html>
