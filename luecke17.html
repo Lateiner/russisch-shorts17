@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Lückentext</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #cbd5e0;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --success-bg: #f0fff4;
+            --error-bg: #fff5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .instruction {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        /* Styling für die Lückentext-Sätze */
+        .cloze-sentence {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .translation-hint {
+            display: block;
+            font-size: 0.95rem;
+            color: #718096;
+            font-style: italic;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        /* Das Dropdown-Menü im Text */
+        .cloze-select {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            padding: 4px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            background-color: white;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: all 0.2s ease;
+            max-width: 100%;
+        }
+
+        .cloze-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Status-Klassen für direkte Rückmeldung */
+        .cloze-select.correct {
+            background-color: var(--success-bg);
+            border-color: var(--success-color);
+            color: #276749;
+            cursor: not-allowed;
+        }
+
+        .cloze-select.incorrect {
+            background-color: var(--error-bg);
+            border-color: var(--error-color);
+            color: #9b2c2c;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #4a5568;
+        }
+
+        .result-message {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            min-height: 30px;
+            color: var(--success-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aufgabe 3: Lückentext (Cloze Test)</h2>
+    <p class="instruction">Wähle das passende russische Wort für die Lücken aus. Falsche Antworten werden automatisch zurückgesetzt.</p>
+
+    <div class="cloze-wrapper">
+        <!-- Aufgabe 1 -->
+        <div class="cloze-sentence">
+            Знаете ли вы, что значит 
+            <select class="cloze-select" data-answer="слово">
+                <option value="" disabled selected>...</option>
+                <option value="слово">слово</option>
+                <option value="урок">урок</option>
+                <option value="город">город</option>
+            </select>
+            наперекосяк?
+            <span class="translation-hint">Übersetzung: Wisst ihr, was das Wort „naperekosjak“ bedeutet?</span>
+        </div>
+
+        <!-- Aufgabe 2 -->
+        <div class="cloze-sentence">
+            Это значит не так, как должно 
+            <select class="cloze-select" data-answer="быть">
+                <option value="" disabled selected>...</option>
+                <option value="быть">быть</option>
+                <option value="идти">идти</option>
+                <option value="делать">делать</option>
+            </select>, 
+            не так, как нужно.
+            <span class="translation-hint">Übersetzung: Das bedeutet nicht so, wie es sein sollte, nicht so, wie es sein müsste.</span>
+        </div>
+
+        <!-- Aufgabe 3 -->
+        <div class="cloze-sentence">
+            Сегодня все идет 
+            <select class="cloze-select" data-answer="наперекосяк">
+                <option value="" disabled selected>...</option>
+                <option value="хорошо">хорошо</option>
+                <option value="быстро">быстро</option>
+                <option value="наперекосяк">наперекосяк</option>
+            </select>, 
+            ничего не получается.
+            <span class="translation-hint">Übersetzung: Heute läuft alles schief, nichts klappt.</span>
+        </div>
+
+        <!-- Aufgabe 4 -->
+        <div class="cloze-sentence">
+            То есть все идет не так, как я этого 
+            <select class="cloze-select" data-answer="хочу">
+                <option value="" disabled selected>...</option>
+                <option value="знаю">знаю</option>
+                <option value="хочу">хочу</option>
+                <option value="пишу">пишу</option>
+            </select>.
+            <span class="translation-hint">Übersetzung: Das heißt, alles läuft nicht so, wie ich es mir wünsche.</span>
+        </div>
+
+        <!-- Aufgabe 5 -->
+        <div class="cloze-sentence">
+            <select class="cloze-select" data-answer="Часто">
+                <option value="" disabled selected>...</option>
+                <option value="Часто">Часто</option>
+                <option value="Редко">Редко</option>
+                <option value="Никогда">Никогда</option>
+            </select> 
+            ли у вас все идет наперекосяк?
+            <span class="translation-hint">Übersetzung: Läuft bei euch oft alles schief?</span>
+        </div>
+
+        <!-- Aufgabe 6 -->
+        <div class="cloze-sentence">
+            Напишите в 
+            <select class="cloze-select" data-answer="комментариях">
+                <option value="" disabled selected>...</option>
+                <option value="книгах">книгах</option>
+                <option value="комментариях">комментариях</option>
+                <option value="школе">школе</option>
+            </select>!
+            <span class="translation-hint">Übersetzung: Schreibt es in die Kommentare!</span>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button id="reset-btn">Neustart</button>
+    </div>
+
+    <div class="result-message" id="global-result"></div>
+</div>
+
+<script>
+    const selects = document.querySelectorAll('.cloze-select');
+    const globalResult = document.getElementById('global-result');
+    const resetBtn = document.getElementById('reset-btn');
+
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            const selectedValue = this.value;
+            const correctAnswer = this.getAttribute('data-answer');
+
+            if (selectedValue === correctAnswer) {
+                // Richtiges Ergebnis
+                this.classList.remove('incorrect');
+                this.classList.add('correct');
+                this.disabled = true; // Sperrt das Feld bei Erfolg
+                checkAllComplete();
+            } else {
+                // Falsches Ergebnis
+                this.classList.add('incorrect');
+                this.disabled = true; // Verhindert sofortiges Weiterklicken während des Feedbacks
+
+                // Nach 1 Sekunde visuell zurücksetzen, damit der Schüler neu wählen kann
+                setTimeout(() => {
+                    this.classList.remove('incorrect');
+                    this.value = ""; // Setzt auf "..." zurück
+                    this.disabled = false;
+                }, 1000);
+            }
+        });
+    });
+
+    // Prüft, ob alle Lücken korrekt gefüllt sind, um die finale Erfolgsmeldung anzuzeigen
+    function checkAllComplete() {
+        const allCorrect = Array.from(selects).every(select => select.classList.contains('correct'));
+        if (allCorrect) {
+            globalResult.textContent = "Ausgezeichnet! Alle 6 Lücken wurden korrekt ausgefüllt. 🎉";
+        }
+    }
+
+    // Neustart-Logik
+    resetBtn.addEventListener('click', () => {
+        selects.forEach(select => {
+            select.classList.remove('correct', 'incorrect');
+            select.value = ""; // Auf Platzhalter zurücksetzen
+            select.disabled = false;
+        });
+        globalResult.textContent = "";
+    });
+</script>
+
+</body>
+</html>
