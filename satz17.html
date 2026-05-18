@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Satz-Puzzle</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --accent-color: #edf2f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .instruction {
+            margin-bottom: 25px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        .translation-hint {
+            text-align: center;
+            font-style: italic;
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            min-height: 25px;
+        }
+
+        .sentence-builder {
+            background: #fff;
+            border: 2px dashed #cbd5e0;
+            min-height: 80px;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            transition: all 0.2s ease;
+        }
+
+        .sentence-builder.correct {
+            border-color: var(--success-color);
+            background-color: #f0fff4;
+        }
+
+        .sentence-builder.incorrect {
+            border-color: var(--error-color);
+            background-color: #fff5f5;
+        }
+
+        .words-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            min-height: 50px;
+        }
+
+        .word-chunk {
+            background: var(--accent-color);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            user-select: none;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .word-chunk:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+        }
+
+        .sentence-builder .word-chunk {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(43, 108, 176, 0.2);
+            cursor: default;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #4a5568;
+        }
+
+        .result-message {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="progress-bar" id="progress">Aufgabe 1 von 6</div>
+    <h2>Satz-Puzzle (Word Order)</h2>
+    <p class="instruction">Bringe den Satz in die richtige Reihenfolge. Tippe die Wörter an. Falsche Wörter fliegen automatisch zurück.</p>
+    <p class="translation-hint" id="translation-text"></p>
+
+    <div class="sentence-builder" id="target-zone"></div>
+    <div class="words-pool" id="source-pool"></div>
+
+    <div class="btn-container">
+        <button id="reset-btn">Neustart</button>
+    </div>
+
+    <div class="result-message" id="result-text"></div>
+</div>
+
+<script>
+    // Die 6 Aufgabenstellungen
+    const tasks = [
+        {
+            hint: "Heute läuft alles schief, nichts klappt.",
+            words: ["Сегодня", "все", "идет", "наперекосяк,", "ничего", "не", "получается."]
+        },
+        {
+            hint: "Alles läuft nicht so, wie es sein sollte.",
+            words: ["Все", "идет", "не", "так,", "как", "должно", "быть."]
+        },
+        {
+            hint: "Heute läuft bei uns alles drunter und drüber.",
+            words: ["Сегодня", "у", "нас", "все", "идет", "наперекосяк."]
+        },
+        {
+            hint: "Nichts klappt so, wie ich es mir wünsche.",
+            words: ["Ничего", "не", "получается", "так,", "как", "я", "хочу."]
+        },
+        {
+            hint: "Läuft bei euch oft alles schief?",
+            words: ["Часто", "ли", "у", "вас", "все", "идет", "наперекосяк?"]
+        },
+        {
+            hint: "Schreibe deine Antwort in die Kommentare!",
+            words: ["Напишите", "свой", "ответ", "в", "комментариях!"]
+        }
+    ];
+
+    let currentTaskIndex = 0;
+    let lockInteraction = false;
+
+    const sourcePool = document.getElementById('source-pool');
+    const targetZone = document.getElementById('target-zone');
+    const translationText = document.getElementById('translation-text');
+    const progressText = document.getElementById('progress');
+    const resultText = document.getElementById('result-text');
+    const resetBtn = document.getElementById('reset-btn');
+
+    function initTask() {
+        lockInteraction = false;
+        targetZone.innerHTML = '';
+        sourcePool.innerHTML = '';
+        targetZone.classList.remove('correct', 'incorrect');
+        resultText.textContent = '';
+        
+        if (currentTaskIndex >= tasks.length) {
+            progressText.textContent = "Fertig!";
+            translationText.textContent = "Herzlichen Glückwunsch!";
+            resultText.style.color = 'var(--success-color)';
+            resultText.textContent = "Du hast alle 6 Sätze erfolgreich gemeistert! 🎉";
+            return;
+        }
+
+        const currentTask = tasks[currentTaskIndex];
+        progressText.textContent = `Aufgabe ${currentTaskIndex + 1} von ${tasks.length}`;
+        translationText.textContent = `Gesucht: „${currentTask.hint}“`;
+
+        // Wörter klonen und mischen
+        const shuffledWords = [...currentTask.words].sort(() => Math.random() - 0.5);
+
+        shuffledWords.forEach(word => {
+            const chunk = document.createElement('div');
+            chunk.className = 'word-chunk';
+            chunk.textContent = word;
+            chunk.setAttribute('data-word', word);
+            sourcePool.appendChild(chunk);
+        });
+    }
+
+    // Sofort-Feedback Logik beim Antippen eines Wortes
+    sourcePool.addEventListener('click', function(e) {
+        const chunk = e.target.closest('.word-chunk');
+        if (!chunk || lockInteraction) return;
+
+        const currentTask = tasks[currentTaskIndex];
+        const currentPlacedCount = targetZone.children.length;
+        const expectedWord = currentTask.words[currentPlacedCount];
+
+        // Wort temporär in die Satz-Box schieben
+        targetZone.appendChild(chunk);
+
+        // Überprüfen, ob die Auswahl an dieser Position korrekt ist
+        if (chunk.getAttribute('data-word') === expectedWord) {
+            // Richtiges Wort gewählt
+            targetZone.classList.remove('incorrect');
+            
+            // Prüfen, ob der Satz damit komplett fertig ist
+            if (targetZone.children.length === currentTask.words.length) {
+                lockInteraction = true;
+                targetZone.classList.add('correct');
+                resultText.style.color = 'var(--success-color)';
+                resultText.textContent = "Perfekt!";
+                
+                // Nach 1.5 Sekunden automatisch zum nächsten Satz wechseln
+                setTimeout(() => {
+                    currentTaskIndex++;
+                    initTask();
+                }, 1500);
+            }
+        } else {
+            // Falsches Wort gewählt
+            lockInteraction = true;
+            targetZone.classList.add('incorrect');
+            resultText.style.color = 'var(--error-color)';
+            resultText.textContent = "Das war die falsche Reihenfolge.";
+
+            // Nach 1 Sekunde fliegt das falsche Wort automatisch wieder zurück
+            setTimeout(() => {
+                sourcePool.appendChild(chunk);
+                targetZone.classList.remove('incorrect');
+                resultText.textContent = '';
+                lockInteraction = false;
+            }, 1000);
+        }
+    });
+
+    // Neustart-Button setzt das gesamte Spiel zurück
+    resetBtn.addEventListener('click', () => {
+        currentTaskIndex = 0;
+        initTask();
+    });
+
+    // Initialer Start beim Laden der Seite
+    initTask();
+</script>
+
+</body>
+</html>
