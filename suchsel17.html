@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch lernen: Suchsel (Waagerecht & Senkrecht)</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #cbd5e0;
+            --select-color: #bee3f8;
+            --success-color: #48bb78;
+            --success-bg: #f0fff4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .instruction {
+            margin-bottom: 20px;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        /* Wortliste */
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .word-item {
+            font-size: 1rem;
+            font-weight: bold;
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 6px 14px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .word-item.found {
+            background-color: var(--success-bg);
+            color: #22543d;
+            border-color: var(--success-color);
+            text-decoration: line-through;
+            opacity: 0.75;
+        }
+
+        /* Responsives Suchsel-Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 4px;
+            background: #e2e8f0;
+            padding: 6px;
+            border-radius: 8px;
+            margin: 0 auto 25px auto;
+            max-width: 100%;
+            touch-action: none;
+        }
+
+        .cell {
+            background: white;
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.1s ease;
+        }
+
+        @media (max-width: 480px) {
+            .cell {
+                font-size: 0.85rem;
+            }
+            .grid-container {
+                gap: 2px;
+                padding: 4px;
+            }
+            .word-item {
+                font-size: 0.85rem;
+                padding: 4px 10px;
+            }
+        }
+
+        /* Zustände der Zellen */
+        .cell.highlighted {
+            background-color: var(--select-color);
+            color: #2b6cb0;
+        }
+
+        .cell.found {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        #reset-btn {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #reset-btn:hover {
+            background-color: #4a5568;
+        }
+
+        .result-message {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            min-height: 30px;
+            color: var(--success-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aufgabe 10: Kyrillisches Suchsel</h2>
+    <p class="instruction">Finde alle 5 Wörter im Buchstabengitter (nur waagerecht oder senkrecht):</p>
+    
+    <div class="word-list" id="words-to-find-container">
+        <!-- Wort-Badges werden per JS generiert -->
+    </div>
+
+    <div class="grid-container" id="search-grid">
+        <!-- Zellen werden dynamisch per JavaScript befüllt -->
+    </div>
+
+    <div class="btn-container">
+        <button id="reset-btn">Neustart / Mischen</button>
+    </div>
+
+    <div class="result-message" id="result-text"></div>
+</div>
+
+<script>
+    const GRID_SIZE = 12; 
+    const targetWords = ["НАПЕРЕКОСЯК", "СЕГОДНЯ", "КОММЕНТАРИЙ", "СЛОВО", "НИЧЕГО"];
+    const cyrillicAlphabet = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+    
+    let gridMatrix = [];
+    let isDrawing = false;
+    let startCell = null;
+    let wordsData = []; 
+    let foundWordsCount = 0;
+
+    const gridContainer = document.getElementById('search-grid');
+    const wordsContainer = document.getElementById('words-to-find-container');
+    const resultText = document.getElementById('result-text');
+    const resetBtn = document.getElementById('reset-btn');
+
+    function initGame() {
+        gridContainer.innerHTML = '';
+        wordsContainer.innerHTML = '';
+        resultText.textContent = '';
+        foundWordsCount = 0;
+        isDrawing = false;
+        startCell = null;
+        wordsData = [];
+
+        // UI-Liste erstellen
+        targetWords.forEach(word => {
+            const wordBadge = document.createElement('div');
+            wordBadge.className = 'word-item';
+            wordBadge.id = `badge-${word}`;
+            wordBadge.textContent = word;
+            wordsContainer.appendChild(wordBadge);
+        });
+
+        // Leere Matrix erstellen
+        gridMatrix = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
+
+        // NUR NOCH: [Spalten-Schritt, Zeilen-Schritt] -> Waagerecht oder Senkrecht
+        const directions = [
+            [1, 0],   // Horizontal vorwärts (links nach rechts)
+            [0, 1]    // Vertikal abwärts (oben nach unten)
+        ];
+
+        // Wörter platzieren
+        targetWords.forEach(word => {
+            let placed = false;
+            let attempts = 0;
+
+            while (!placed && attempts < 300) {
+                attempts++;
+                const dir = directions[Math.floor(Math.random() * directions.length)];
+                const startX = Math.floor(Math.random() * GRID_SIZE);
+                const startY = Math.floor(Math.random() * GRID_SIZE);
+
+                const endX = startX + dir[0] * (word.length - 1);
+                const endY = startY + dir[1] * (word.length - 1);
+
+                if (endX >= 0 && endX < GRID_SIZE && endY >= 0 && endY < GRID_SIZE) {
+                    let canPlace = true;
+                    
+                    for (let i = 0; i < word.length; i++) {
+                        const x = startX + dir[0] * i;
+                        const y = startY + dir[1] * i;
+                        if (gridMatrix[y][x] !== '' && gridMatrix[y][x] !== word[i]) {
+                            canPlace = false;
+                            break;
+                        }
+                    }
+
+                    if (canPlace) {
+                        let placedCells = [];
+                        for (let i = 0; i < word.length; i++) {
+                            const x = startX + dir[0] * i;
+                            const y = startY + dir[1] * i;
+                            gridMatrix[y][x] = word[i];
+                            placedCells.push({ x, y });
+                        }
+                        wordsData.push({ word: word, cells: placedCells, found: false });
+                        placed = true;
+                    }
+                }
+            }
+        });
+
+        // Restliche leere Felder auffüllen
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                if (gridMatrix[y][x] === '') {
+                    gridMatrix[y][x] = cyrillicAlphabet[Math.floor(Math.random() * cyrillicAlphabet.length)];
+                }
+            }
+        }
+
+        // Grid-DOM bauen
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = gridMatrix[y][x];
+                cell.setAttribute('data-x', x);
+                cell.setAttribute('data-y', y);
+                
+                cell.addEventListener('mousedown', (e) => startSelection(x, y));
+                cell.addEventListener('mouseenter', (e) => updateSelection(x, y));
+                
+                gridContainer.appendChild(cell);
+            }
+        }
+    }
+
+    // Touch-Events abfangen
+    gridContainer.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (elem && elem.classList.contains('cell')) {
+            startSelection(parseInt(elem.getAttribute('data-x')), parseInt(elem.getAttribute('data-y')));
+        }
+    });
+
+    gridContainer.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (elem && elem.classList.contains('cell')) {
+            updateSelection(parseInt(elem.getAttribute('data-x')), parseInt(elem.getAttribute('data-y')));
+        }
+    });
+
+    window.addEventListener('mouseup', endSelection);
+    gridContainer.addEventListener('touchend', endSelection);
+
+    function startSelection(x, y) {
+        isDrawing = true;
+        startCell = { x, y };
+        highlightCells(startCell, { x, y });
+    }
+
+    function updateSelection(x, y) {
+        if (!isDrawing) return;
+        highlightCells(startCell, { x, y });
+    }
+
+    function highlightCells(start, end) {
+        const allCells = document.querySelectorAll('.cell');
+        allCells.forEach(c => { if(!c.classList.contains('found')) c.classList.remove('highlighted'); });
+
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+
+        // Einschränkung auf reine waagerechte (dy === 0) oder senkrechte (dx === 0) Linien
+        if (dx === 0 || dy === 0) {
+            const steps = Math.max(Math.abs(dx), Math.abs(dy));
+            const stepX = dx === 0 ? 0 : dx / steps;
+            const stepY = dy === 0 ? 0 : dy / steps;
+
+            for (let i = 0; i <= steps; i++) {
+                const currX = start.x + stepX * i;
+                const currY = start.y + stepY * i;
+                const cellElem = document.querySelector(`.cell[data-x='${currX}'][data-y='${currY}']`);
+                if (cellElem && !cellElem.classList.contains('found')) {
+                    cellElem.classList.add('highlighted');
+                }
+            }
+        }
+    }
+
+    function endSelection() {
+        if (!isDrawing) return;
+        isDrawing = false;
+
+        const highlightedElems = document.querySelectorAll('.cell.highlighted');
+        if (highlightedElems.length === 0) return;
+
+        let selectionCoords = [];
+        highlightedElems.forEach(elem => {
+            selectionCoords.push({
+                x: parseInt(elem.getAttribute('data-x')),
+                y: parseInt(elem.getAttribute('data-y'))
+            });
+        });
+
+        let matchFound = false;
+
+        for (let w = 0; w < wordsData.length; w++) {
+            const wordObj = wordsData[w];
+            if (wordObj.found) continue;
+
+            if (wordObj.cells.length === selectionCoords.length) {
+                let allCellsMatch = wordObj.cells.every(wCell => 
+                    selectionCoords.some(sCell => sCell.x === wCell.x && sCell.y === wCell.y)
+                );
+
+                if (allCellsMatch) {
+                    wordObj.found = true;
+                    matchFound = true;
+                    foundWordsCount++;
+
+                    highlightedElems.forEach(elem => {
+                        elem.classList.remove('highlighted');
+                        elem.classList.add('found');
+                    });
+
+                    document.getElementById(`badge-${wordObj.word}`).classList.add('found');
+                    break;
+                }
+            }
+        }
+
+        if (!matchFound) {
+            highlightedElems.forEach(elem => elem.classList.remove('highlighted'));
+        }
+
+        if (foundWordsCount === targetWords.length) {
+            resultText.textContent = "Fantastisch! Du hast alle 5 russischen Wörter entdeckt! 🎉";
+        }
+    }
+
+    resetBtn.addEventListener('click', initGame);
+    initGame();
+</script>
+
+</body>
+</html>
